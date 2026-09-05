@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Judgement Scorer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d3d28">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Judgement">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --felt:#0d3d28;
+  --felt-light:#14593a;
+  --gold:#d4af37;
+  --gold-dim:#a8892c;
+  --text:#f2ead4;
+  --text-dim:#b9c9bd;
+  --danger:#e05252;
+  --success:#3fbf6a;
+  --card-bg:#123a29;
+  --border:#2a5c42;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{
+  margin:0; padding:0; height:100%;
+  background:var(--felt);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  overscroll-behavior:none;
+  -webkit-user-select:none; user-select:none;
+}
+input, textarea{ -webkit-user-select:text; user-select:text; }
+body{
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.screen{ display:none; min-height:100vh; flex-direction:column; padding:16px; padding-bottom:40px; }
+.screen.active{ display:flex; }
+h1{ font-size:26px; margin:8px 0 4px; color:var(--gold); text-align:center; }
+h2{ font-size:20px; margin:0 0 12px; color:var(--gold); }
+.subtitle{ text-align:center; color:var(--text-dim); font-size:14px; margin-bottom:20px; }
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+}
+button{
+  font-family:inherit;
+  border:none;
+  border-radius:12px;
+  font-size:17px;
+  font-weight:600;
+  padding:14px 18px;
+  cursor:pointer;
+}
+.btn-primary{ background:var(--gold); color:#12331f; width:100%; }
+.btn-primary:active{ opacity:0.8; }
+.btn-secondary{ background:var(--felt-light); color:var(--text); width:100%; border:1px solid var(--border); }
+.btn-danger{ background:var(--danger); color:#fff; }
+.btn-block{ margin-bottom:10px; }
+.btn-sm{ padding:8px 12px; font-size:14px; border-radius:8px; }
+.row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.stack{ display:flex; flex-direction:column; gap:10px; }
+input[type=text], input[type=number]{
+  font-size:16px;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0f2e20;
+  color:var(--text);
+  width:100%;
+}
+label{ font-size:13px; color:var(--text-dim); display:block; margin-bottom:4px; }
+.stepper{ display:flex; align-items:center; gap:14px; justify-content:center; }
+.stepper button{
+  width:52px; height:52px; border-radius:50%;
+  background:var(--felt-light); color:var(--gold);
+  font-size:26px; line-height:1; border:1px solid var(--border);
+}
+.stepper button:disabled{ opacity:0.3; }
+.stepper .val{ font-size:34px; font-weight:700; min-width:60px; text-align:center; color:var(--text); }
+.player-pill{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--felt-light); border-radius:10px; padding:10px 12px; margin-bottom:8px;
+  border:1px solid var(--border);
+}
+.player-pill.active{ border-color:var(--gold); box-shadow:0 0 0 2px rgba(212,175,55,0.25); }
+.player-pill.done{ opacity:0.55; }
+.badge{ font-size:11px; padding:2px 8px; border-radius:20px; background:var(--gold); color:#12331f; font-weight:700; }
+.badge-dim{ background:var(--felt); color:var(--text-dim); border:1px solid var(--border); }
+table{ width:100%; border-collapse:collapse; font-size:14px; }
+th,td{ padding:8px 6px; text-align:center; border-bottom:1px solid var(--border); white-space:nowrap; }
+th{ color:var(--gold-dim); font-size:12px; text-transform:uppercase; }
+.success{ color:var(--success); font-weight:700; }
+.failed{ color:var(--danger); font-weight:700; }
+.leader{ color:var(--gold); font-weight:800; }
+.top-nav{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.top-nav .back{ background:none; color:var(--gold); padding:6px 10px; font-size:22px; }
+.top-nav .title{ flex:1; text-align:center; font-size:17px; font-weight:700; color:var(--text); }
+.warning{ background:rgba(224,82,82,0.15); border:1px solid var(--danger); color:#ffb3b3; padding:10px 12px; border-radius:10px; font-size:13px; margin-top:8px; }
+.hint{ color:var(--text-dim); font-size:12px; margin-top:6px; }
+.spacer{ flex:1; }
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,0.6);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+}
+.modal-overlay.active{ display:flex; }
+.modal{ background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:20px; width:100%; max-width:360px; }
+.modal h3{ margin-top:0; color:var(--gold); }
+.chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.chip{ background:var(--felt-light); border:1px solid var(--border); border-radius:20px; padding:8px 14px; font-size:14px; }
+.chip.selected{ background:var(--gold); color:#12331f; font-weight:700; }
+.small-muted{ color:var(--text-dim); font-size:12px; }
+.rules-list{ font-size:14px; line-height:1.6; }
+.rules-list li{ margin-bottom:8px; }
+.history-item{ display:flex; justify-content:space-between; align-items:center; padding:12px; }
+.history-item .meta{ color:var(--text-dim); font-size:12px; }
+.divider{ height:1px; background:var(--border); margin:14px 0; }
+.trophy{ font-size:40px; text-align:center; }
+.numselect{ display:flex; align-items:center; justify-content:center; gap:16px; }
+.numselect .val{ font-size:40px; font-weight:800; min-width:70px; text-align:center; }
+.name-input-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.name-input-row span{ width:26px; text-align:right; color:var(--text-dim); font-size:13px; }
+.wl-toggle{ display:flex; gap:8px; }
+.wl-btn{
+  flex:1; padding:12px 10px; border-radius:10px; font-size:15px; font-weight:700;
+  background:var(--felt); color:var(--text-dim); border:1px solid var(--border);
+}
+.wl-btn.win-selected{ background:var(--success); color:#0b2e1c; border-color:var(--success); }
+.wl-btn.lost-selected{ background:var(--danger); color:#fff; border-color:var(--danger); }
+.num-input{
+  width:70px; text-align:center; font-size:22px; font-weight:700;
+  padding:10px 6px; border-radius:10px; border:1px solid var(--border);
+  background:#0f2e20; color:var(--text);
+}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <h1>&#9824; Judgement</h1>
+  <div class="subtitle">Score keeper for friends & family</div>
+  <div class="stack">
+    <button class="btn-primary" onclick="goNewGame()">New Game</button>
+    <button class="btn-secondary" id="btn-resume" style="display:none" onclick="resumeGame()">Resume Game in Progress</button>
+    <button class="btn-secondary" onclick="showScreen('screen-history')">Game History</button>
+    <button class="btn-secondary" onclick="showScreen('screen-rules')">Rules / How to Play</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="small-muted" style="text-align:center;">Works fully offline. Your games stay on this device.</div>
+</div>
+
+<!-- NEW GAME SETUP -->
+<div class="screen" id="screen-setup">
+  <div class="top-nav">
+    <button class="back" onclick="showScreen('screen-home')">&#8249;</button>
+    <div class="title">New Game</div>
+    <div style="width:34px"></div>
+  </div>
+
+  <div class="card">
+    <label>Number of Players</label>
+    <div class="numselect">
+      <button class="stepper" style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changePlayerCount(-1)">&#8722;</button>
+      <div class="val" id="playerCountVal">4</div>
+      <button style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changePlayerCount(1)">&#43;</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Player Names</label>
+    <div id="playerNamesContainer"></div>
+  </div>
+
+  <div class="card">
+    <label>Starting Cards (max <span id="maxCardsLabel">26</span>)</label>
+    <div class="numselect">
+      <button style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeStartCards(-1)">&#8722;</button>
+      <div class="val" id="startCardsVal">7</div>
+      <button style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeStartCards(1)">&#43;</button>
+    </div>
+    <div class="hint" id="startCardsHint"></div>
+  </div>
+
+  <div class="card">
+    <label>First Dealer</label>
+    <div class="chip-row" id="dealerChipRow"></div>
+  </div>
+
+  <button class="btn-primary" onclick="startGame()">Start Game</button>
+</div>
+
+<!-- ANNOUNCEMENT SCREEN -->
+<div class="screen" id="screen-announce">
+  <div class="top-nav">
+    <button class="back" onclick="confirmLeaveGame('screen-home')">&#8249;</button>
+    <div class="title" id="announceRoundTitle">Round 1</div>
+    <button class="btn-sm btn-secondary" onclick="showScoreboardModal()">Scores</button>
+  </div>
+  <div class="card">
+    <div class="row"><span class="small-muted">Cards this round</span><b id="announceCardsPerPlayer">7</b></div>
+    <div class="row"><span class="small-muted">Dealer</span><b id="announceDealerName">A</b></div>
+    <div class="divider" style="margin:8px 0;"></div>
+    <div class="row"><span class="small-muted">Total announced</span><b id="announceTotalVal" style="font-size:22px;">0</b></div>
+  </div>
+  <div id="announceWarning"></div>
+  <h2>Announce Sets</h2>
+  <div id="announceList"></div>
+  <button class="btn-primary btn-block" style="margin-top:6px;" onclick="confirmAllAnnouncements()">Confirm Announcements</button>
+</div>
+
+<!-- ACTUAL SETS SCREEN -->
+<div class="screen" id="screen-actual">
+  <div class="top-nav">
+    <button class="back" onclick="confirmLeaveGame('screen-home')">&#8249;</button>
+    <div class="title" id="actualRoundTitle">Round 1</div>
+    <button class="btn-sm btn-secondary" onclick="showScoreboardModal()">Scores</button>
+  </div>
+  <div class="card">
+    <div class="row"><span class="small-muted">Cards this round</span><b id="actualCardsPerPlayer">7</b></div>
+    <div class="small-muted">Total announced: <b id="actualTotalAnnounced">0</b></div>
+  </div>
+  <h2>Mark Win or Lost</h2>
+  <div class="small-muted" style="margin-bottom:8px;">Everyone defaults to Win. Tap "Lost" only for players who missed their announcement.</div>
+  <div id="actualList"></div>
+  <button class="btn-primary" onclick="finishRound()">Submit Round</button>
+</div>
+
+<!-- ROUND SUMMARY -->
+<div class="screen" id="screen-summary">
+  <div class="top-nav">
+    <button class="back" onclick="confirmLeaveGame('screen-home')">&#8249;</button>
+    <div class="title" id="summaryRoundTitle">Round 1 Result</div>
+    <button class="btn-sm btn-secondary" onclick="undoLastRound()">Undo</button>
+  </div>
+  <div class="card">
+    <table id="summaryTable">
+      <thead><tr><th>Player</th><th>Ann</th><th>Outcome</th><th>Score</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <h2>Scoresheet (all rounds so far)</h2>
+  <div class="card" style="overflow-x:auto; -webkit-overflow-scrolling:touch;"><table id="summaryStandingsTable" style="min-width:100%;"></table></div>
+  <button class="btn-primary btn-block" id="nextRoundBtn" onclick="goNextRound()">Next Round</button>
+</div>
+
+<!-- GAME FINISHED -->
+<div class="screen" id="screen-finished">
+  <div class="top-nav">
+    <div style="width:34px"></div>
+    <div class="title">Game Finished</div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="trophy">&#127942;</div>
+  <h1 id="finishedWinnerText">Winner</h1>
+  <div class="card">
+    <h2>Final Scores</h2>
+    <table id="finalScoresTable"><tbody></tbody></table>
+  </div>
+  <button class="btn-primary btn-block" onclick="goToHomeAfterFinish()">Back to Home</button>
+  <button class="btn-secondary" onclick="viewCurrentGameDetail()">View Full Scorecard</button>
+</div>
+
+<!-- GAME HISTORY LIST -->
+<div class="screen" id="screen-history">
+  <div class="top-nav">
+    <button class="back" onclick="showScreen('screen-home')">&#8249;</button>
+    <div class="title">Game History</div>
+    <div style="width:34px"></div>
+  </div>
+  <div id="historyList" class="card" style="padding:0;"></div>
+  <div id="historyEmpty" class="small-muted" style="text-align:center; margin-top:20px;">No completed games yet.</div>
+</div>
+
+<!-- GAME HISTORY DETAIL -->
+<div class="screen" id="screen-history-detail">
+  <div class="top-nav">
+    <button class="back" onclick="showScreen('screen-history')">&#8249;</button>
+    <div class="title" id="detailTitle">Game</div>
+    <div style="width:34px"></div>
+  </div>
+  <div id="detailContent"></div>
+</div>
+
+<!-- RULES -->
+<div class="screen" id="screen-rules">
+  <div class="top-nav">
+    <button class="back" onclick="showScreen('screen-home')">&#8249;</button>
+    <div class="title">How to Play</div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="card">
+    <ul class="rules-list">
+      <li>Two decks are used = 104 cards, for 2 to 15 players.</li>
+      <li>Before the game starts, players agree on the starting number of cards per player.</li>
+      <li>Cards per player decrease by 1 each round, down to 1 card in the final round.</li>
+      <li>The dealer rotates to the next player after every round.</li>
+      <li>The player to the dealer's left announces first; the dealer always announces last.</li>
+      <li>The total of all announced sets can never equal the number of cards dealt that round. The app blocks the dealer from making it equal.</li>
+      <li>If a player's actual sets made equal their announcement, they score 10 + announced sets.</li>
+      <li>If a player misses their announcement (over or under), they score minus their announced sets.</li>
+      <li>The game ends after the round with 1 card each. Highest total score wins.</li>
+    </ul>
+    <div class="divider"></div>
+    <div class="small-muted">Example: 7 cards, announcements are 3, 2, then the dealer cannot say 2 (since 3+2+2=7). If the dealer says 1 and makes it, they score 10+1=11. If a player announces 3 but only makes 2, they score -3.</div>
+  </div>
+</div>
+
+<!-- SCOREBOARD MODAL -->
+<div class="modal-overlay" id="scoreboardModal">
+  <div class="modal" style="max-width:96vw; width:96vw;">
+    <h3>Score Sheet</h3>
+    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+      <table id="modalScoreTable" style="min-width:100%;"></table>
+    </div>
+    <button class="btn-primary btn-block" style="margin-top:16px;" onclick="closeModal('scoreboardModal')">Close</button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3 id="confirmModalTitle">Are you sure?</h3>
+    <div id="confirmModalBody" class="small-muted"></div>
+    <div class="stack" style="margin-top:16px;">
+      <button class="btn-danger" id="confirmModalYes" style="width:100%;">Yes</button>
+      <button class="btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ROUND MODAL -->
+<div class="modal-overlay" id="editRoundModal">
+  <div class="modal">
+    <h3>Edit Round <span id="editRoundNum"></span></h3>
+    <div id="editRoundBody"></div>
+    <div class="stack" style="margin-top:16px;">
+      <button class="btn-primary" onclick="saveEditedRound()">Save Changes</button>
+      <button class="btn-secondary" onclick="closeModal('editRoundModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
