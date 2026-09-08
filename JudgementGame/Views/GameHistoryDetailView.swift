@@ -159,25 +159,23 @@ public struct GameHistoryDetailView: View {
                         }
                     }
                     
-                    // Delete Game Record Button (only for past completed games)
-                    if stateManager.activeGame?.gameId != game.gameId {
-                        Button(action: {
-                            showDeleteConfirmAlert = true
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "trash.fill")
-                                Text("Delete Game from History")
-                            }
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(AppTheme.danger)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(AppTheme.danger.opacity(0.15))
-                            .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppTheme.danger.opacity(0.4), lineWidth: 1))
+                    // Delete Game Record Button
+                    Button(action: {
+                        showDeleteConfirmAlert = true
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "trash.fill")
+                            Text("Delete Game Record")
                         }
-                        .padding(.top, 8)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(AppTheme.danger)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(AppTheme.danger.opacity(0.15))
+                        .cornerRadius(10)
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppTheme.danger.opacity(0.4), lineWidth: 1))
                     }
+                    .padding(.top, 8)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 30)

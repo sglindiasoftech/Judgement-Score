@@ -82,11 +82,15 @@ public class GameStateManager: ObservableObject {
     public func deleteGameFromHistory(gameId: String) {
         history.removeAll { $0.gameId == gameId }
         saveHistory()
+        if activeGame?.gameId == gameId {
+            clearSavedGame()
+        }
     }
     
     public func clearAllHistory() {
         history.removeAll()
         saveHistory()
+        clearSavedGame()
     }
     
     public func loadNameHistory() {

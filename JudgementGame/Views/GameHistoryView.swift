@@ -23,7 +23,7 @@ public struct GameHistoryView: View {
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(AppTheme.text)
                 Spacer()
-                if !stateManager.history.isEmpty {
+                if !stateManager.history.isEmpty || stateManager.activeGame != nil {
                     Button(action: {
                         showClearAllAlert = true
                     }) {
@@ -44,7 +44,7 @@ public struct GameHistoryView: View {
                     Image(systemName: "clock.badge.exclamationmark")
                         .font(.system(size: 48))
                         .foregroundColor(AppTheme.textDim)
-                    Text("No completed games yet.")
+                    Text("No game records yet.")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(AppTheme.textDim)
                     Spacer()
@@ -54,39 +54,52 @@ public struct GameHistoryView: View {
                     VStack(spacing: 12) {
                         // Active game banner if available
                         if let active = stateManager.activeGame {
-                            Button(action: {
-                                selectedGame = active
-                            }) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        HStack {
-                                            Text(formattedDate(active.date))
-                                                .font(.system(size: 16, weight: .bold))
-                                                .foregroundColor(AppTheme.text)
+                            HStack(spacing: 8) {
+                                Button(action: {
+                                    selectedGame = active
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            HStack {
+                                                Text(formattedDate(active.date))
+                                                    .font(.system(size: 16, weight: .bold))
+                                                    .foregroundColor(AppTheme.text)
+                                                
+                                                Text("IN PROGRESS")
+                                                    .font(.system(size: 10, weight: .black))
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(AppTheme.gold)
+                                                    .foregroundColor(.white)
+                                                    .cornerRadius(6)
+                                            }
                                             
-                                            Text("IN PROGRESS")
-                                                .font(.system(size: 10, weight: .black))
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 2)
-                                                .background(AppTheme.gold)
-                                                .foregroundColor(.white)
-                                                .cornerRadius(6)
+                                            Text("\(active.numPlayers) players · started \(active.startingCards) cards")
+                                                .font(.system(size: 12, weight: .medium))
+                                                .foregroundColor(AppTheme.textDim)
                                         }
-                                        
-                                        Text("\(active.numPlayers) players · started \(active.startingCards) cards")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(AppTheme.textDim)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(AppTheme.gold)
                                     }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(AppTheme.gold)
                                 }
-                                .padding(14)
-                                .background(AppTheme.feltLight)
-                                .cornerRadius(12)
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppTheme.gold, lineWidth: 1.5))
+                                
+                                Button(action: {
+                                    gameToDelete = active
+                                }) {
+                                    Image(systemName: "trash.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(AppTheme.danger)
+                                        .padding(10)
+                                        .background(AppTheme.danger.opacity(0.15))
+                                        .clipShape(Circle())
+                                }
                             }
+                            .padding(12)
+                            .background(AppTheme.feltLight)
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(AppTheme.gold, lineWidth: 1.5))
                         }
                         
                         ForEach(stateManager.history) { game in
@@ -146,7 +159,7 @@ public struct GameHistoryView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Are you sure you want to permanently delete all completed game records from history?")
+            Text("Are you sure you want to permanently delete all game records and reset any active game?")
         }
         .alert("Delete Game Record?", isPresented: Binding(
             get: { gameToDelete != nil },
