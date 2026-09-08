@@ -49,7 +49,7 @@ public struct GameHistoryDetailView: View {
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(AppTheme.textDim)
                             Spacer()
-                            Text(currentGame.players.map { $0.name }.joined(separator: ", "))
+                            Text(currentGame.players.map { $0.name.uppercased() }.joined(separator: ", "))
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(AppTheme.text)
                                 .lineLimit(1)
@@ -128,7 +128,7 @@ public struct GameHistoryDetailView: View {
                                     let cum = round.cumulativeScores[player.position] ?? 0
                                     
                                     HStack {
-                                        Text(player.name)
+                                        Text(player.name.uppercased())
                                             .font(.system(size: 13, weight: .bold))
                                             .foregroundColor(AppTheme.text)
                                             .frame(maxWidth: .infinity, alignment: .leading)

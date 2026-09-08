@@ -82,8 +82,11 @@ public struct RoundSummaryView: View {
                                         let score = round.roundScores[playerIdx] ?? 0
                                         
                                         HStack {
-                                            Text(player.name)
+                                            Text(player.name.uppercased())
                                                 .font(.system(size: 14, weight: .bold))
+                                                .lineLimit(1)
+                                                .allowsTightening(true)
+                                                .minimumScaleFactor(0.4)
                                                 .foregroundColor(AppTheme.text)
                                                 .frame(maxWidth: .infinity, alignment: .leading)
                                             
@@ -224,13 +227,16 @@ public struct ScoreboardTableView: View {
                         
                         ForEach(game.players, id: \.position) { player in
                             VStack(spacing: 1) {
-                                Text(player.name)
+                                Text(player.name.uppercased())
                                     .font(.system(size: 15, weight: .black))
+                                    .lineLimit(1)
+                                    .allowsTightening(true)
+                                    .minimumScaleFactor(0.4)
                                     .foregroundColor(player.hasQuit ? AppTheme.textDim : AppTheme.gold)
                                 if player.hasQuit {
                                     Text("🧊 QUIT")
                                         .font(.system(size: 9, weight: .bold))
-                                        .foregroundColor(Color.cyan)
+                                        .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
                                 }
                             }
                             .frame(width: 96, alignment: .center)
@@ -259,7 +265,7 @@ public struct ScoreboardTableView: View {
                                     if player.hasQuit && roundNum >= (player.quitRound ?? 0) {
                                         Text("🧊 0")
                                             .font(.system(size: 15, weight: .bold))
-                                            .foregroundColor(Color.cyan.opacity(0.8))
+                                            .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
                                             .frame(width: 96, alignment: .center)
                                     } else {
                                         Text(sc >= 0 ? "+\(sc)" : "\(sc)")
@@ -302,7 +308,7 @@ public struct ScoreboardTableView: View {
                                 HStack(spacing: 3) {
                                     Text("\(val)")
                                         .font(.system(size: 20, weight: .black))
-                                        .foregroundColor(player.hasQuit ? Color.cyan : (isLeader ? AppTheme.gold : AppTheme.text))
+                                        .foregroundColor(player.hasQuit ? Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0) : (isLeader ? AppTheme.gold : AppTheme.text))
                                     if isLeader {
                                         Text("⭐")
                                             .font(.system(size: 13))
@@ -311,7 +317,7 @@ public struct ScoreboardTableView: View {
                                 if player.hasQuit {
                                     Text("FROZEN")
                                         .font(.system(size: 9, weight: .bold))
-                                        .foregroundColor(Color.cyan)
+                                        .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
                                 }
                             }
                             .frame(width: 96, alignment: .center)

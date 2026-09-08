@@ -79,7 +79,7 @@ public struct GameFinishedView: View {
                                         .frame(width: 24, alignment: .leading)
                                     
                                     HStack(spacing: 6) {
-                                        Text(item.name)
+                                        Text(item.name.uppercased())
                                             .font(.system(size: 16, weight: item.isWinner ? .heavy : .bold))
                                             .foregroundColor(item.isWinner ? AppTheme.gold : AppTheme.text)
                                         

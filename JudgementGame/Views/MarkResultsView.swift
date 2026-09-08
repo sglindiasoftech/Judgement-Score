@@ -20,11 +20,16 @@ public struct MarkResultsView: View {
                 // Header Nav
                 HStack {
                     Button(action: {
-                        showGameOptionsAlert = true
+                        stateManager.returnToAnnouncePhase()
+                        currentNavigation = .announce
                     }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(AppTheme.gold)
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .bold))
+                            Text("Edit Bids")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .foregroundColor(AppTheme.gold)
                     }
                     Spacer()
                     Text("Round \(round.roundNumber)")
@@ -91,17 +96,20 @@ public struct MarkResultsView: View {
                                 .background(AppTheme.border)
                                 .padding(.vertical, 2)
                             
-                            // DOUBLE SIZE + YELLOW COLOR FOR "Dealer:" AND DEALER NAME
+                            // DOUBLE SIZE + DARK BLUE COLOR FOR "Dealer:" AND BLACK FOR DEALER NAME
                             HStack {
-                                Text("Dealer:")
-                                    .font(.system(size: 28, weight: .black))
-                                    .foregroundColor(Color.yellow)
-                                Spacer()
-                                let dealerName = game.players.first(where: { $0.position == round.dealerIndex })?.name ?? "Dealer"
-                                Text(dealerName)
-                                    .font(.system(size: 28, weight: .black))
-                                    .foregroundColor(Color.yellow)
-                                    .shadow(color: Color.yellow.opacity(0.5), radius: 6, x: 0, y: 2)
+                                 Text("Dealer:")
+                                     .font(.system(size: 28, weight: .black))
+                                     .foregroundColor(AppTheme.goldDim)
+                                 Spacer()
+                                 let dealerName = game.players.first(where: { $0.position == round.dealerIndex })?.name ?? "Dealer"
+                                 Text(dealerName.uppercased())
+                                     .font(.system(size: 28, weight: .black))
+                                     .lineLimit(1)
+                                     .allowsTightening(true)
+                                     .minimumScaleFactor(0.35)
+                                     .layoutPriority(1)
+                                     .foregroundColor(AppTheme.text)
                             }
                             .padding(.vertical, 2)
                             
@@ -120,14 +128,34 @@ public struct MarkResultsView: View {
                             }
                         }
                         
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Mark Win or Lost")
-                                .font(.system(size: 20, weight: .bold))
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Mark Win or Lost")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(AppTheme.gold)
+                                
+                                Text("Everyone defaults to Win (+10 + bid). Select \"Lost\" (-bid) only for players who missed their announcement.")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(AppTheme.textDim)
+                            }
+                            Spacer()
+                            Button(action: {
+                                stateManager.returnToAnnouncePhase()
+                                currentNavigation = .announce
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "pencil")
+                                        .font(.system(size: 12, weight: .bold))
+                                    Text("Edit Bids")
+                                        .font(.system(size: 13, weight: .bold))
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(AppTheme.feltLight)
                                 .foregroundColor(AppTheme.gold)
-                            
-                            Text("Everyone defaults to Win (+10 + bid). Select \"Lost\" (-bid) only for players who missed their announcement.")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(AppTheme.textDim)
+                                .cornerRadius(8)
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(AppTheme.gold.opacity(0.3), lineWidth: 1))
+                            }
                         }
                         .padding(.top, 4)
                         
@@ -137,12 +165,20 @@ public struct MarkResultsView: View {
                                 let announced = round.announcements[player.position] ?? 0
                                 let currentOutcome = round.results[player.position] ?? .win
                                 let isDealer = player.position == round.dealerIndex
+                                let totalScore: Int = {
+                                    if game.rounds.count > 1 {
+                                        let prevRound = game.rounds[game.rounds.count - 2]
+                                        return prevRound.cumulativeScores[player.position] ?? 0
+                                    }
+                                    return 0
+                                }()
                                 
                                 PlayerResultRow(
                                     player: player,
                                     isDealer: isDealer,
                                     announced: announced,
                                     currentOutcome: currentOutcome,
+                                    totalScore: totalScore,
                                     onSelectOutcome: { newOutcome in
                                         stateManager.setActualResult(playerIndex: player.position, outcome: newOutcome)
                                     }
@@ -150,10 +186,15 @@ public struct MarkResultsView: View {
                             }
                         }
                         
+                        let isInvalidAllWin = round.isAllActiveWinningInvalid(players: game.players)
+                        
                         PrimaryGoldButton(title: "Submit Round", iconName: "arrow.right.circle.fill") {
-                            stateManager.finishRound()
-                            currentNavigation = .summary
+                            if stateManager.finishRound() {
+                                currentNavigation = .summary
+                            }
                         }
+                        .disabled(isInvalidAllWin)
+                        .opacity(isInvalidAllWin ? 0.4 : 1.0)
                         .padding(.top, 8)
                         .padding(.bottom, 30)
                     }
@@ -199,6 +240,7 @@ struct PlayerResultRow: View {
     let isDealer: Bool
     let announced: Int
     let currentOutcome: RoundOutcome
+    let totalScore: Int
     let onSelectOutcome: (RoundOutcome) -> Void
     
     var previewScore: Int {
@@ -207,11 +249,16 @@ struct PlayerResultRow: View {
     }
     
     var body: some View {
-        HStack {
+        HStack(alignment: .center) {
+            // Left: Player Name (50% larger font, 24pt) & Dealer/Quit Badge
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(player.name)
-                        .font(.system(size: 16, weight: .bold))
+                    Text(player.name.uppercased())
+                        .font(.system(size: 24, weight: .black))
+                        .lineLimit(1)
+                        .allowsTightening(true)
+                        .minimumScaleFactor(0.35)
+                        .layoutPriority(1)
                         .foregroundColor(player.hasQuit ? AppTheme.textDim : AppTheme.text)
                     
                     if isDealer && !player.hasQuit {
@@ -219,9 +266,10 @@ struct PlayerResultRow: View {
                             .font(.system(size: 11, weight: .black))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.yellow)
-                            .foregroundColor(Color(red: 18/255.0, green: 51/255.0, blue: 31/255.0))
+                            .background(AppTheme.goldDim)
+                            .foregroundColor(.white)
                             .cornerRadius(6)
+                            .fixedSize()
                     }
                     
                     if player.hasQuit {
@@ -229,35 +277,44 @@ struct PlayerResultRow: View {
                             .font(.system(size: 10, weight: .black))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.3))
-                            .foregroundColor(Color.cyan)
+                            .background(Color(red: 224/255.0, green: 242/255.0, blue: 254/255.0))
+                            .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
                             .cornerRadius(6)
+                            .fixedSize()
                     }
                 }
                 
-                if player.hasQuit {
-                    Text("Score Frozen (0 pt this round)")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(Color.cyan)
-                } else {
-                    HStack(spacing: 8) {
-                        Text("Bid: \(announced)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(AppTheme.textDim)
-                        
-                        Text(previewScore >= 0 ? "+\(previewScore)" : "\(previewScore)")
-                            .font(.system(size: 13, weight: .heavy))
-                            .foregroundColor(previewScore >= 0 ? AppTheme.success : AppTheme.danger)
-                    }
+                Text("Net Score: \(totalScore)")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(totalScore < 0 ? AppTheme.danger : AppTheme.gold)
+            }
+            
+            Spacer()
+            
+            // Middle / Blank Space: Bid No. & Points preview (+10)
+            if player.hasQuit {
+                Text("Score Frozen")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
+            } else {
+                VStack(spacing: 1) {
+                    Text("Bid: \(announced)")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(AppTheme.text)
+                    
+                    Text(previewScore >= 0 ? "+\(previewScore)" : "\(previewScore)")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundColor(previewScore >= 0 ? AppTheme.success : AppTheme.danger)
                 }
             }
             
             Spacer()
             
+            // Right: Win / Lost Buttons
             if player.hasQuit {
                 Text("Frozen")
                     .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(Color.cyan)
+                    .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(AppTheme.cardBg)
@@ -277,9 +334,9 @@ struct PlayerResultRow: View {
                             Text("Win")
                                 .font(.system(size: 14, weight: .bold))
                         }
-                        .frame(width: 72, height: 38)
-                        .background(currentOutcome == .win ? AppTheme.success : AppTheme.feltGreen)
-                        .foregroundColor(currentOutcome == .win ? Color(red: 11/255.0, green: 46/255.0, blue: 28/255.0) : AppTheme.textDim)
+                        .frame(width: 68, height: 38)
+                        .background(currentOutcome == .win ? AppTheme.success : AppTheme.feltLight)
+                        .foregroundColor(currentOutcome == .win ? .white : AppTheme.textDim)
                         .cornerRadius(8)
                     }
                     
@@ -295,14 +352,14 @@ struct PlayerResultRow: View {
                             Text("Lost")
                                 .font(.system(size: 14, weight: .bold))
                         }
-                        .frame(width: 72, height: 38)
-                        .background(currentOutcome == .lost ? AppTheme.danger : AppTheme.feltGreen)
+                        .frame(width: 68, height: 38)
+                        .background(currentOutcome == .lost ? AppTheme.danger : AppTheme.feltLight)
                         .foregroundColor(currentOutcome == .lost ? .white : AppTheme.textDim)
                         .cornerRadius(8)
                     }
                 }
                 .padding(3)
-                .background(AppTheme.feltGreen)
+                .background(AppTheme.feltLight)
                 .cornerRadius(10)
                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(AppTheme.border, lineWidth: 1))
             }
@@ -312,7 +369,7 @@ struct PlayerResultRow: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(isDealer ? Color.yellow : (currentOutcome == .lost ? AppTheme.danger.opacity(0.6) : AppTheme.border), lineWidth: isDealer ? 1.5 : 1)
+                .stroke(isDealer ? AppTheme.goldDim : (currentOutcome == .lost ? AppTheme.danger.opacity(0.6) : AppTheme.border), lineWidth: isDealer ? 1.5 : 1)
         )
     }
 }

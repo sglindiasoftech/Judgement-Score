@@ -40,7 +40,7 @@ public struct ManagePlayersSheetView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack(spacing: 6) {
-                                        Text(player.name)
+                                        Text(player.name.uppercased())
                                             .font(.system(size: 16, weight: .bold))
                                             .foregroundColor(AppTheme.text)
                                         
@@ -49,10 +49,10 @@ public struct ManagePlayersSheetView: View {
                                                 .font(.system(size: 10, weight: .black))
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 2)
-                                                .background(Color.blue.opacity(0.3))
-                                                .foregroundColor(Color.cyan)
+                                                .background(Color(red: 224/255.0, green: 242/255.0, blue: 254/255.0))
+                                                .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
                                                 .cornerRadius(6)
-                                                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.cyan.opacity(0.6), lineWidth: 1))
+                                                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0).opacity(0.3), lineWidth: 1))
                                         } else {
                                             Text("ACTIVE")
                                                 .font(.system(size: 10, weight: .black))

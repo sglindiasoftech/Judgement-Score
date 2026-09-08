@@ -1,17 +1,25 @@
 import SwiftUI
 
 public struct AppTheme {
-    public static let feltGreen = Color(red: 13/255.0, green: 61/255.0, blue: 40/255.0)
-    public static let feltLight = Color(red: 20/255.0, green: 89/255.0, blue: 58/255.0)
-    public static let gold = Color(red: 212/255.0, green: 175/255.0, blue: 55/255.0)
-    public static let goldDim = Color(red: 168/255.0, green: 137/255.0, blue: 44/255.0)
-    public static let text = Color(red: 242/255.0, green: 234/255.0, blue: 212/255.0)
-    public static let textDim = Color(red: 185/255.0, green: 201/255.0, blue: 189/255.0)
-    public static let danger = Color(red: 224/255.0, green: 82/255.0, blue: 82/255.0)
-    public static let success = Color(red: 63/255.0, green: 191/255.0, blue: 106/255.0)
-    public static let cardBg = Color(red: 18/255.0, green: 58/255.0, blue: 41/255.0)
-    public static let border = Color(red: 42/255.0, green: 92/255.0, blue: 66/255.0)
-    public static let inputBg = Color(red: 15/255.0, green: 46/255.0, blue: 32/255.0)
+    // Canvas & Surface Colors (Light white base with blue tints)
+    public static let feltGreen = Color(red: 246/255.0, green: 248/255.0, blue: 252/255.0) // Soft white canvas (#F6F8FC)
+    public static let feltLight = Color(red: 238/255.0, green: 242/255.0, blue: 255/255.0) // Light royal tint surface (#EEF2FF)
+    public static let cardBg = Color(red: 255/255.0, green: 255/255.0, blue: 255/255.0)    // Pure White cards (#FFFFFF)
+    public static let inputBg = Color(red: 241/255.0, green: 245/255.0, blue: 249/255.0)   // Light slate input (#F1F5F9)
+    public static let border = Color(red: 226/255.0, green: 232/255.0, blue: 240/255.0)    // Crisp light border (#E2E8F0)
+    
+    // Primary & Secondary Accents (Vibrant Royal & Indigo Blue, Mango Yellow)
+    public static let gold = Color(red: 37/255.0, green: 99/255.0, blue: 235/255.0)       // Vibrant Royal Blue (#2563EB)
+    public static let goldDim = Color(red: 29/255.0, green: 78/255.0, blue: 216/255.0)    // Deep Cobalt Blue (#1D4ED8)
+    public static let mangoYellow = Color(red: 245/255.0, green: 158/255.0, blue: 11/255.0) // Warm Mango Yellow (#F59E0B)
+    
+    // Typography Colors (Crisp high-contrast day & night)
+    public static let text = Color(red: 15/255.0, green: 23/255.0, blue: 42/255.0)       // Deep Slate / Navy (#0F172A)
+    public static let textDim = Color(red: 71/255.0, green: 85/255.0, blue: 105/255.0)   // Slate Gray (#475569)
+    
+    // Status Indicators
+    public static let danger = Color(red: 220/255.0, green: 38/255.0, blue: 38/255.0)    // Vibrant Red (#DC2626)
+    public static let success = Color(red: 16/255.0, green: 185/255.0, blue: 129/255.0)  // Emerald Green (#10B981)
 }
 
 public struct FeltBackgroundModifier: ViewModifier {
@@ -21,7 +29,7 @@ public struct FeltBackgroundModifier: ViewModifier {
                 .ignoresSafeArea()
             content
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
     }
 }
 
@@ -45,6 +53,7 @@ public struct FeltCardView<Content: View>: View {
         .padding(14)
         .background(AppTheme.cardBg)
         .cornerRadius(14)
+        .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(AppTheme.border, lineWidth: 1)
@@ -73,13 +82,13 @@ public struct PrimaryGoldButton: View {
                 Text(title)
                     .font(.system(size: 17, weight: .bold))
             }
-            .foregroundColor(Color(red: 18/255.0, green: 51/255.0, blue: 31/255.0))
+            .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .padding(.horizontal, 18)
             .background(AppTheme.gold)
             .cornerRadius(12)
-            .shadow(color: AppTheme.gold.opacity(0.3), radius: 6, x: 0, y: 3)
+            .shadow(color: AppTheme.gold.opacity(0.25), radius: 6, x: 0, y: 3)
         }
     }
 }
@@ -105,7 +114,7 @@ public struct SecondaryFeltButton: View {
                 Text(title)
                     .font(.system(size: 17, weight: .semibold))
             }
-            .foregroundColor(AppTheme.text)
+            .foregroundColor(AppTheme.gold)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .padding(.horizontal, 18)
@@ -113,7 +122,7 @@ public struct SecondaryFeltButton: View {
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(AppTheme.border, lineWidth: 1)
+                    .stroke(AppTheme.gold.opacity(0.3), lineWidth: 1)
             )
         }
     }
@@ -141,3 +150,4 @@ public struct DangerButton: View {
         }
     }
 }
+

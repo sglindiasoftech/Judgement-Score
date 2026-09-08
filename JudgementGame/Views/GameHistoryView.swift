@@ -69,7 +69,7 @@ public struct GameHistoryView: View {
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 2)
                                                 .background(AppTheme.gold)
-                                                .foregroundColor(Color(red: 18/255.0, green: 51/255.0, blue: 31/255.0))
+                                                .foregroundColor(.white)
                                                 .cornerRadius(6)
                                         }
                                         

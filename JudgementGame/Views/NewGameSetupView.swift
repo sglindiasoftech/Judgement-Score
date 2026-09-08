@@ -191,7 +191,7 @@ public struct NewGameSetupView: View {
                                             .padding(.horizontal, 14)
                                             .padding(.vertical, 8)
                                             .background(isSelected ? AppTheme.gold : AppTheme.feltLight)
-                                            .foregroundColor(isSelected ? Color(red: 18/255.0, green: 51/255.0, blue: 31/255.0) : AppTheme.text)
+                                            .foregroundColor(isSelected ? .white : AppTheme.text)
                                             .clipShape(Capsule())
                                             .overlay(
                                                 Capsule()
@@ -264,12 +264,17 @@ struct PlayerNameRow: View {
                 .frame(width: 24, alignment: .trailing)
             
             HStack(spacing: 8) {
-                TextField("Player \(idx + 1) name", text: $name)
+                TextField("PLAYER \(idx + 1) NAME", text: $name)
                     .focused($activeFieldIndex, equals: idx)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(AppTheme.text)
                     .autocorrectionDisabled(true)
-                    .textInputAutocapitalization(.words)
+                    .textInputAutocapitalization(.characters)
+                    .onChange(of: name) { newValue in
+                        if newValue != newValue.uppercased() {
+                            name = newValue.uppercased()
+                        }
+                    }
                 
                 if !name.isEmpty || canDelete {
                     Button(action: {

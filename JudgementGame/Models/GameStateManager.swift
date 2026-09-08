@@ -99,7 +99,7 @@ public class GameStateManager: ObservableObject {
         }
         
         if let raw = UserDefaults.standard.array(forKey: keyNameHistory) as? [String] {
-            self.nameHistory = raw.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+            self.nameHistory = raw.map { $0.uppercased() }.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
         } else {
             self.nameHistory = []
         }
@@ -111,10 +111,10 @@ public class GameStateManager: ObservableObject {
     }
     
     public func saveNameToHistory(_ name: String) {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard !trimmed.isEmpty else { return }
         
-        var list = nameHistory.filter { $0.lowercased() != trimmed.lowercased() }
+        var list = nameHistory.map { $0.uppercased() }.filter { $0 != trimmed }
         list.append(trimmed)
         list.sort { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
         if list.count > 60 {
@@ -125,10 +125,11 @@ public class GameStateManager: ObservableObject {
     }
     
     public func updateNameInHistory(oldName: String, newName: String) {
-        let trimmedNew = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNew = newName.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let trimmedOld = oldName.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard !trimmedNew.isEmpty else { return }
         
-        var list = nameHistory.filter { $0.lowercased() != oldName.lowercased() && $0.lowercased() != trimmedNew.lowercased() }
+        var list = nameHistory.map { $0.uppercased() }.filter { $0 != trimmedOld && $0 != trimmedNew }
         list.append(trimmedNew)
         list.sort { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
         self.nameHistory = list
@@ -136,7 +137,8 @@ public class GameStateManager: ObservableObject {
     }
     
     public func deleteNameFromHistory(_ name: String) {
-        let list = nameHistory.filter { $0.lowercased() != name.lowercased() }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let list = nameHistory.map { $0.uppercased() }.filter { $0 != trimmed }
         self.nameHistory = list
         UserDefaults.standard.set(list, forKey: keyNameHistory)
     }
@@ -208,8 +210,8 @@ public class GameStateManager: ObservableObject {
     public func startGame() {
         var players: [Player] = []
         for i in 0..<setupNumPlayers {
-            let raw = setupPlayerNames[i].trimmingCharacters(in: .whitespacesAndNewlines)
-            let finalName = raw.isEmpty ? "Player \(i + 1)" : raw
+            let raw = setupPlayerNames[i].trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+            let finalName = raw.isEmpty ? "PLAYER \(i + 1)" : raw
             players.append(Player(name: finalName, position: i))
             if !raw.isEmpty {
                 saveNameToHistory(raw)
@@ -289,6 +291,13 @@ public class GameStateManager: ObservableObject {
         return true
     }
     
+    public func returnToAnnouncePhase() {
+        guard activeGame != nil, !activeGame!.rounds.isEmpty else { return }
+        let roundIdx = activeGame!.rounds.count - 1
+        activeGame!.rounds[roundIdx].phase = .announce
+        saveGame()
+    }
+    
     public func setActualResult(playerIndex: Int, outcome: RoundOutcome) {
         guard activeGame != nil, !activeGame!.rounds.isEmpty else { return }
         let roundIdx = activeGame!.rounds.count - 1
@@ -296,14 +305,20 @@ public class GameStateManager: ObservableObject {
         saveGame()
     }
     
-    public func finishRound() {
-        guard activeGame != nil, !activeGame!.rounds.isEmpty else { return }
-        pushUndoSnapshot()
-        
+    public func finishRound() -> Bool {
+        guard activeGame != nil, !activeGame!.rounds.isEmpty else { return false }
         let roundIdx = activeGame!.rounds.count - 1
+        let round = activeGame!.rounds[roundIdx]
+        
+        if round.isAllActiveWinningInvalid(players: activeGame!.players) {
+            return false
+        }
+        
+        pushUndoSnapshot()
         computeRoundScores(roundIndex: roundIdx)
         activeGame!.rounds[roundIdx].phase = .summary
         saveGame()
+        return true
     }
     
     public func computeRoundScores(roundIndex: Int) {

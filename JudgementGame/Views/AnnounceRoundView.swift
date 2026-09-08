@@ -98,18 +98,20 @@ public struct AnnounceRoundView: View {
                                 .background(AppTheme.border)
                                 .padding(.vertical, 2)
                             
-                            // DOUBLE SIZE + YELLOW COLOR FOR "Dealer:" AND DEALER NAME
-                            HStack {
-                                Text("Dealer:")
-                                    .font(.system(size: 28, weight: .black))
-                                    .foregroundColor(Color.yellow)
-                                Spacer()
-                                let dealerName = game.players.first(where: { $0.position == round.dealerIndex })?.name ?? "Dealer"
-                                Text(dealerName)
-                                    .font(.system(size: 28, weight: .black))
-                                    .foregroundColor(Color.yellow)
-                                    .shadow(color: Color.yellow.opacity(0.5), radius: 6, x: 0, y: 2)
-                            }
+                            // DOUBLE SIZE + DARK BLUE COLOR FOR "Dealer:" AND BLACK FOR DEALER NAME
+                             HStack {
+                                 Text("Dealer:")
+                                     .font(.system(size: 28, weight: .black))
+                                     .foregroundColor(AppTheme.goldDim)
+                                 Spacer()
+                                 let dealerName = game.players.first(where: { $0.position == round.dealerIndex })?.name ?? "Dealer"
+                                 Text(dealerName.uppercased())
+                                     .font(.system(size: 28, weight: .black))
+                                     .lineLimit(1)
+                                     .allowsTightening(true)
+                                     .minimumScaleFactor(0.35)
+                                     .foregroundColor(AppTheme.text)
+                             }
                             .padding(.vertical, 2)
                             
                             Divider()
@@ -139,9 +141,9 @@ public struct AnnounceRoundView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .font(.system(size: 18))
                                     .foregroundColor(AppTheme.danger)
-                                Text("Total announced equals \(round.cardsPerPlayer) cards — NOT ALLOWED! The dealer, \(dealerName), must change their number.")
-                                    .font(.system(size: 13, weight: .bold))
-                                    .foregroundColor(Color(red: 255/255.0, green: 179/255.0, blue: 179/255.0))
+                                 Text("Total announced equals \(round.cardsPerPlayer) cards — NOT ALLOWED! The dealer, \(dealerName), must change their number.")
+                                     .font(.system(size: 13, weight: .bold))
+                                     .foregroundColor(AppTheme.danger)
                             }
                             .padding(12)
                             .background(AppTheme.danger.opacity(0.18))
@@ -167,12 +169,20 @@ public struct AnnounceRoundView: View {
                                 if let player = game.players.first(where: { $0.position == playerIdx }) {
                                     let currentBid = round.announcements[playerIdx] ?? 0
                                     let isDealer = playerIdx == round.dealerIndex
+                                    let totalScore: Int = {
+                                        if game.rounds.count > 1 {
+                                            let prevRound = game.rounds[game.rounds.count - 2]
+                                            return prevRound.cumulativeScores[playerIdx] ?? 0
+                                        }
+                                        return 0
+                                    }()
                                     
                                     PlayerAnnounceRow(
                                         player: player,
                                         isDealer: isDealer,
                                         cardsPerPlayer: round.cardsPerPlayer,
                                         currentBid: currentBid,
+                                        totalScore: totalScore,
                                         focusedPlayerIndex: _focusedPlayerIndex,
                                         onBidChanged: { newBid in
                                             stateManager.updateAnnouncement(playerIndex: playerIdx, bid: newBid)
@@ -255,6 +265,7 @@ struct PlayerAnnounceRow: View {
     let isDealer: Bool
     let cardsPerPlayer: Int
     let currentBid: Int
+    let totalScore: Int
     @FocusState var focusedPlayerIndex: Int?
     let onBidChanged: (Int) -> Void
     
@@ -262,30 +273,42 @@ struct PlayerAnnounceRow: View {
     
     var body: some View {
         HStack {
-            HStack(spacing: 6) {
-                Text(player.name)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(player.hasQuit ? AppTheme.textDim : AppTheme.text)
-                
-                if isDealer && !player.hasQuit {
-                    Text("DEALER")
-                        .font(.system(size: 12, weight: .black))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.yellow)
-                        .foregroundColor(Color(red: 18/255.0, green: 51/255.0, blue: 31/255.0))
-                        .cornerRadius(8)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(player.name.uppercased())
+                        .font(.system(size: 24, weight: .black))
+                        .lineLimit(1)
+                        .allowsTightening(true)
+                        .minimumScaleFactor(0.35)
+                        .layoutPriority(1)
+                        .foregroundColor(player.hasQuit ? AppTheme.textDim : AppTheme.text)
+                    
+                    if isDealer && !player.hasQuit {
+                        Text("DEALER")
+                            .font(.system(size: 12, weight: .black))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(AppTheme.goldDim)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                            .fixedSize()
+                    }
+                    
+                    if player.hasQuit {
+                        Text("🧊 QUIT")
+                            .font(.system(size: 11, weight: .black))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color(red: 224/255.0, green: 242/255.0, blue: 254/255.0))
+                            .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
+                            .cornerRadius(6)
+                            .fixedSize()
+                    }
                 }
                 
-                if player.hasQuit {
-                    Text("🧊 QUIT")
-                        .font(.system(size: 11, weight: .black))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.3))
-                        .foregroundColor(Color.cyan)
-                        .cornerRadius(6)
-                }
+                Text("Net Score: \(totalScore)")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(totalScore < 0 ? AppTheme.danger : AppTheme.gold)
             }
             
             Spacer()
@@ -293,7 +316,7 @@ struct PlayerAnnounceRow: View {
             if player.hasQuit {
                 Text("Score Frozen")
                     .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(Color.cyan)
+                    .foregroundColor(Color(red: 3/255.0, green: 105/255.0, blue: 161/255.0))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(AppTheme.cardBg)
@@ -317,16 +340,16 @@ struct PlayerAnnounceRow: View {
                     }
                     .disabled(currentBid <= 0)
                     
-                    // Direct numeric text field
+                    // Direct numeric text field with 100% larger bid quantity font
                     TextField("0", text: $inputText)
                         .focused($focusedPlayerIndex, equals: player.position)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.center)
-                        .font(.system(size: 20, weight: .heavy))
+                        .font(.system(size: 28, weight: .black))
                         .foregroundColor(AppTheme.text)
-                        .frame(width: 50, height: 38)
+                        .frame(width: 60, height: 44)
                         .background(AppTheme.inputBg)
-                        .cornerRadius(8)
+                        .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(focusedPlayerIndex == player.position ? AppTheme.gold : AppTheme.border, lineWidth: 1.5)
@@ -335,7 +358,16 @@ struct PlayerAnnounceRow: View {
                             inputText = "\(currentBid)"
                         }
                         .onChange(of: currentBid) { newVal in
-                            inputText = "\(newVal)"
+                            if focusedPlayerIndex != player.position {
+                                inputText = "\(newVal)"
+                            }
+                        }
+                        .onChange(of: focusedPlayerIndex) { newFocusedIndex in
+                            if newFocusedIndex == player.position {
+                                inputText = ""
+                            } else if inputText.isEmpty {
+                                inputText = "\(currentBid)"
+                            }
                         }
                         .onChange(of: inputText) { rawText in
                             let filtered = rawText.filter { $0.isNumber }
@@ -370,7 +402,7 @@ struct PlayerAnnounceRow: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(isDealer ? Color.yellow : AppTheme.border, lineWidth: isDealer ? 2 : 1)
+                .stroke(isDealer ? AppTheme.goldDim : AppTheme.border, lineWidth: isDealer ? 2 : 1)
         )
     }
 }

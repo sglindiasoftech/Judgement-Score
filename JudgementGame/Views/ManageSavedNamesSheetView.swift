@@ -57,10 +57,16 @@ public struct ManageSavedNamesSheetView: View {
                     .foregroundColor(AppTheme.gold)
                     .font(.system(size: 18))
                 
-                TextField("Register new player name...", text: $newRegisterNameText)
-                    .font(.system(size: 15))
+                TextField("REGISTER NEW PLAYER NAME...", text: $newRegisterNameText)
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(AppTheme.text)
                     .autocorrectionDisabled(true)
+                    .textInputAutocapitalization(.characters)
+                    .onChange(of: newRegisterNameText) { newValue in
+                        if newValue != newValue.uppercased() {
+                            newRegisterNameText = newValue.uppercased()
+                        }
+                    }
                 
                 Button(action: {
                     let trimmed = newRegisterNameText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -77,7 +83,7 @@ public struct ManageSavedNamesSheetView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 7)
                     .background(AppTheme.gold)
-                    .foregroundColor(Color(red: 18/255.0, green: 51/255.0, blue: 31/255.0))
+                    .foregroundColor(.white)
                     .cornerRadius(8)
                 }
                 .disabled(newRegisterNameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -146,8 +152,8 @@ public struct ManageSavedNamesSheetView: View {
                     VStack(spacing: 8) {
                         ForEach(filteredNames, id: \.self) { name in
                             HStack {
-                                Text(name)
-                                    .font(.system(size: 16, weight: .semibold))
+                                Text(name.uppercased())
+                                    .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(AppTheme.text)
                                 
                                 Spacer()

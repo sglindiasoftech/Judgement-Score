@@ -81,6 +81,13 @@ public struct Round: Identifiable, Codable, Hashable {
     public func isDealerRestrictionViolated(players: [Player]) -> Bool {
         activeTotalAnnounced(players: players) == cardsPerPlayer
     }
+    
+    public func isAllActiveWinningInvalid(players: [Player]) -> Bool {
+        let active = players.filter { !$0.hasQuit }
+        guard !active.isEmpty else { return false }
+        // In Judgement, all active players cannot win because activeTotalAnnounced != cardsPerPlayer
+        return active.allSatisfy { results[$0.position] == .win }
+    }
 }
 
 public struct Game: Identifiable, Codable, Hashable {

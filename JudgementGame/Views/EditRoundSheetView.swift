@@ -57,7 +57,7 @@ public struct EditRoundSheetView: View {
                         FeltCardView {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
-                                    Text(player.name)
+                                    Text(player.name.uppercased())
                                         .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(AppTheme.gold)
                                     Spacer()
@@ -128,8 +128,8 @@ public struct EditRoundSheetView: View {
                                                     .font(.system(size: 13, weight: .bold))
                                             }
                                             .frame(width: 64, height: 34)
-                                            .background(currentOutcome == .win ? AppTheme.success : AppTheme.feltGreen)
-                                            .foregroundColor(currentOutcome == .win ? Color(red: 11/255.0, green: 46/255.0, blue: 28/255.0) : AppTheme.textDim)
+                                            .background(currentOutcome == .win ? AppTheme.success : AppTheme.feltLight)
+                                            .foregroundColor(currentOutcome == .win ? .white : AppTheme.textDim)
                                             .cornerRadius(6)
                                         }
                                         
