@@ -10,9 +10,14 @@ public class GameStateManager: ObservableObject {
     
     // New game setup draft state (all names default to empty strings)
     @Published public var setupNumPlayers: Int = 4
+    @Published public var setupNumDecks: Int = 2
     @Published public var setupPlayerNames: [String] = ["", "", "", ""]
     @Published public var setupStartCards: Int = 7
     @Published public var setupDealerIndex: Int = 0
+    
+    public var totalCardsInGame: Int {
+        setupNumDecks * 52
+    }
     
     // Undo & Editing state
     private var undoStack: [String] = [] // Game JSON snapshots
@@ -164,9 +169,22 @@ public class GameStateManager: ObservableObject {
     
     public func initNewGameSetup() {
         setupNumPlayers = 4
+        setupNumDecks = 2
         setupPlayerNames = ["", "", "", ""]
-        setupStartCards = min(7, Game.maxStartCards(for: 4))
+        setupStartCards = min(7, Game.maxStartCards(for: 4, decks: 2))
         setupDealerIndex = 0
+    }
+    
+    public func updateDeckCount(delta: Int) {
+        let newDecks = max(1, min(4, setupNumDecks + delta))
+        setupNumDecks = newDecks
+        let maxCards = Game.maxStartCards(for: setupNumPlayers, decks: setupNumDecks)
+        if setupStartCards > maxCards {
+            setupStartCards = maxCards
+        }
+        if setupStartCards < 1 {
+            setupStartCards = 1
+        }
     }
     
     public func removePlayerRow(at index: Int) {
@@ -176,7 +194,7 @@ public class GameStateManager: ObservableObject {
         while setupPlayerNames.count < setupNumPlayers {
             setupPlayerNames.append("")
         }
-        let maxCards = Game.maxStartCards(for: setupNumPlayers)
+        let maxCards = Game.maxStartCards(for: setupNumPlayers, decks: setupNumDecks)
         if setupStartCards > maxCards {
             setupStartCards = maxCards
         }
@@ -196,7 +214,7 @@ public class GameStateManager: ObservableObject {
             setupPlayerNames = Array(setupPlayerNames.prefix(newCount))
         }
         
-        let maxCards = Game.maxStartCards(for: newCount)
+        let maxCards = Game.maxStartCards(for: newCount, decks: setupNumDecks)
         if setupStartCards > maxCards {
             setupStartCards = maxCards
         }
@@ -206,7 +224,7 @@ public class GameStateManager: ObservableObject {
     }
     
     public func updateStartCards(delta: Int) {
-        let maxCards = Game.maxStartCards(for: setupNumPlayers)
+        let maxCards = Game.maxStartCards(for: setupNumPlayers, decks: setupNumDecks)
         let newCards = max(1, min(maxCards, setupStartCards + delta))
         setupStartCards = newCards
     }
@@ -226,7 +244,8 @@ public class GameStateManager: ObservableObject {
             numPlayers: setupNumPlayers,
             players: players,
             startingCards: setupStartCards,
-            dealerIndex: setupDealerIndex
+            dealerIndex: setupDealerIndex,
+            numberOfDecks: setupNumDecks
         )
         
         let firstRoundOrder = Game.buildAnnouncementOrder(dealerIndex: setupDealerIndex, numPlayers: setupNumPlayers, players: players)

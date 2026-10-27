@@ -73,7 +73,7 @@ public struct GameHistoryView: View {
                                                 .cornerRadius(6)
                                         }
                                         
-                                        Text("\(active.numPlayers) players · started \(active.startingCards) cards")
+                                        Text("\(active.numPlayers) players · \(active.numberOfDecks) deck\(active.numberOfDecks > 1 ? "s" : "") · started \(active.startingCards) cards")
                                             .font(.system(size: 12, weight: .medium))
                                             .foregroundColor(AppTheme.textDim)
                                     }
@@ -101,7 +101,7 @@ public struct GameHistoryView: View {
                                                 .foregroundColor(AppTheme.text)
                                             
                                             let winnerStr = game.winner?.joined(separator: " & ") ?? "-"
-                                            Text("\(game.numPlayers) players · started \(game.startingCards) cards · won by \(winnerStr)")
+                                            Text("\(game.numPlayers) players · \(game.numberOfDecks) deck\(game.numberOfDecks > 1 ? "s" : "") · started \(game.startingCards) cards · won by \(winnerStr)")
                                                 .font(.system(size: 12, weight: .medium))
                                                 .foregroundColor(AppTheme.textDim)
                                                 .lineLimit(1)

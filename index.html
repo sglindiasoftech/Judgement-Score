@@ -180,13 +180,26 @@ th{ color:var(--gold-dim); font-size:12px; text-transform:uppercase; }
   </div>
 
   <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <label style="margin:0;">Number of Decks</label>
+      <span class="small-muted" style="color:var(--gold-dim);">(<span id="deckTotalCardsLabel">104</span> cards)</span>
+    </div>
+    <div class="numselect" style="margin-top:6px;">
+      <button id="btnDeckMinus" style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeDeckCount(-1)">&#8722;</button>
+      <div class="val" id="deckCountVal">2</div>
+      <button id="btnDeckPlus" style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeDeckCount(1)">&#43;</button>
+    </div>
+    <div class="hint" id="deckHint" style="text-align:center;">2 standard decks = 104 cards</div>
+  </div>
+
+  <div class="card">
     <label>Starting Cards (max <span id="maxCardsLabel">26</span>)</label>
     <div class="numselect">
-      <button style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeStartCards(-1)">&#8722;</button>
+      <button id="btnCardsMinus" style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeStartCards(-1)">&#8722;</button>
       <div class="val" id="startCardsVal">7</div>
-      <button style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeStartCards(1)">&#43;</button>
+      <button id="btnCardsPlus" style="width:44px;height:44px;border-radius:50%;background:var(--felt-light);color:var(--gold);border:1px solid var(--border);font-size:22px;" onclick="changeStartCards(1)">&#43;</button>
     </div>
-    <div class="hint" id="startCardsHint"></div>
+    <div class="hint" id="startCardsHint" style="text-align:center;"></div>
   </div>
 
   <div class="card">
@@ -298,7 +311,7 @@ th{ color:var(--gold-dim); font-size:12px; text-transform:uppercase; }
   </div>
   <div class="card">
     <ul class="rules-list">
-      <li>Two decks are used = 104 cards, for 2 to 15 players.</li>
+      <li>1 or more standard 52-card decks are used (e.g. 1 deck = 52 cards, 2 decks = 104 cards), for 2 to 15 players.</li>
       <li>Before the game starts, players agree on the starting number of cards per player.</li>
       <li>Cards per player decrease by 1 each round, down to 1 card in the final round.</li>
       <li>The dealer rotates to the next player after every round.</li>

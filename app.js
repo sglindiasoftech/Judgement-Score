@@ -5,6 +5,7 @@ var STORAGE_HISTORY = 'judgement_history';
 
 var setupState = {
   numPlayers: 4,
+  decks: 2,
   names: ['A', 'B', 'C', 'D'],
   startCards: 7,
   dealerIndex: 0
@@ -42,8 +43,9 @@ function showConfirm(title, body, onYes) {
   openModal('confirmModal');
 }
 
-function maxStartCards(n) {
-  return Math.floor(104 / n);
+function maxStartCards(n, d) {
+  var decks = d || (setupState && setupState.decks) || 2;
+  return Math.floor((decks * 52) / n);
 }
 
 function saveGame() {
@@ -152,8 +154,9 @@ function saveNameToHistory(name) {
 
 function goNewGame() {
   setupState.numPlayers = 4;
+  setupState.decks = 2;
   setupState.names = ['', '', '', ''];
-  setupState.startCards = Math.min(7, maxStartCards(4));
+  setupState.startCards = Math.min(7, maxStartCards(4, 2));
   setupState.dealerIndex = 0;
   renderSetupScreen();
   showScreen('screen-setup');
@@ -162,12 +165,24 @@ function goNewGame() {
 function renderSetupScreen() {
   $('playerCountVal').textContent = setupState.numPlayers;
   renderNameInputs();
-  var mx = maxStartCards(setupState.numPlayers);
+  var d = setupState.decks || 2;
+  var totalCards = d * 52;
+  if ($('deckCountVal')) { $('deckCountVal').textContent = d; }
+  if ($('deckTotalCardsLabel')) { $('deckTotalCardsLabel').textContent = totalCards; }
+  if ($('deckHint')) {
+    $('deckHint').textContent = d === 1 ? '1 standard deck = 52 cards' : (d + ' standard decks = ' + totalCards + ' cards');
+  }
+  if ($('btnDeckMinus')) { $('btnDeckMinus').disabled = d <= 1; }
+  if ($('btnDeckPlus')) { $('btnDeckPlus').disabled = d >= 4; }
+
+  var mx = maxStartCards(setupState.numPlayers, d);
   $('maxCardsLabel').textContent = mx;
   if (setupState.startCards > mx) { setupState.startCards = mx; }
   if (setupState.startCards < 1) { setupState.startCards = 1; }
   $('startCardsVal').textContent = setupState.startCards;
-  $('startCardsHint').textContent = setupState.numPlayers + ' players \u00D7 ' + setupState.startCards + ' cards = ' + (setupState.numPlayers * setupState.startCards) + ' of 104 cards';
+  if ($('btnCardsMinus')) { $('btnCardsMinus').disabled = setupState.startCards <= 1; }
+  if ($('btnCardsPlus')) { $('btnCardsPlus').disabled = setupState.startCards >= mx; }
+  $('startCardsHint').textContent = setupState.numPlayers + ' players \u00D7 ' + setupState.startCards + ' cards = ' + (setupState.numPlayers * setupState.startCards) + ' of ' + totalCards + ' cards';
   renderDealerChips();
 }
 
@@ -292,14 +307,29 @@ function changePlayerCount(delta) {
   renderSetupScreen();
 }
 
+function changeDeckCount(delta) {
+  var d = (setupState.decks || 2) + delta;
+  if (d < 1) { d = 1; }
+  if (d > 4) { d = 4; }
+  setupState.decks = d;
+  var mx = maxStartCards(setupState.numPlayers, d);
+  if (setupState.startCards > mx) { setupState.startCards = mx; }
+  if (setupState.startCards < 1) { setupState.startCards = 1; }
+  renderSetupScreen();
+}
+
 function changeStartCards(delta) {
-  var mx = maxStartCards(setupState.numPlayers);
+  var d = setupState.decks || 2;
+  var totalCards = d * 52;
+  var mx = maxStartCards(setupState.numPlayers, d);
   var v = setupState.startCards + delta;
   if (v < 1) { v = 1; }
   if (v > mx) { v = mx; }
   setupState.startCards = v;
   $('startCardsVal').textContent = v;
-  $('startCardsHint').textContent = setupState.numPlayers + ' players \u00D7 ' + v + ' cards = ' + (setupState.numPlayers * v) + ' of 104 cards';
+  if ($('btnCardsMinus')) { $('btnCardsMinus').disabled = v <= 1; }
+  if ($('btnCardsPlus')) { $('btnCardsPlus').disabled = v >= mx; }
+  $('startCardsHint').textContent = setupState.numPlayers + ' players \u00D7 ' + v + ' cards = ' + (setupState.numPlayers * v) + ' of ' + totalCards + ' cards';
 }
 
 function renderDealerChips() {
@@ -342,6 +372,7 @@ function startGame() {
     numPlayers: n,
     players: players,
     startingCards: setupState.startCards,
+    numberOfDecks: setupState.decks || 2,
     currentDealerIndex: setupState.dealerIndex,
     status: 'active',
     rounds: [],

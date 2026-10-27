@@ -10,6 +10,7 @@ public struct AnnounceRoundView: View {
     @State private var showAbortConfirmAlert: Bool = false
     @State private var isScoreboardModalPresented: Bool = false
     @State private var isManagePlayersPresented: Bool = false
+    @State private var roundToEdit: Round? = nil
     @FocusState private var focusedPlayerIndex: Int?
     
     private func playNativeAlertSound() {
@@ -219,6 +220,14 @@ public struct AnnounceRoundView: View {
             }
         }
         .confirmationDialog("Game Options", isPresented: $showGameOptionsAlert, titleVisibility: .visible) {
+            if let game = stateManager.activeGame, let lastCompleted = game.rounds.filter({ !$0.roundScores.isEmpty }).last {
+                Button("Edit Round \(lastCompleted.roundNumber) (Scores & Bids)") {
+                    roundToEdit = lastCompleted
+                }
+            }
+            Button("Score Sheet (View / Edit Scores)") {
+                isScoreboardModalPresented = true
+            }
             Button("Pause & Save (Resume Later)") {
                 currentNavigation = .home
             }
@@ -241,6 +250,12 @@ public struct AnnounceRoundView: View {
         .sheet(isPresented: $isScoreboardModalPresented) {
             ScoreboardSheetView()
                 .environmentObject(stateManager)
+        }
+        .sheet(item: $roundToEdit) { round in
+            if let game = stateManager.activeGame {
+                EditRoundSheetView(game: game, round: round)
+                    .environmentObject(stateManager)
+            }
         }
         .sheet(isPresented: $isManagePlayersPresented) {
             ManagePlayersSheetView()

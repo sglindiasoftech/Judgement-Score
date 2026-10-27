@@ -4,7 +4,7 @@ public struct RulesView: View {
     @Binding var currentNavigation: AppScreen
     
     let rules: [String] = [
-        "Two decks are used = 104 cards, for 2 to 15 players.",
+        "1 or more standard 52-card decks are used (e.g., 1 deck = 52 cards, 2 decks = 104 cards), for 2 to 15 players.",
         "Before the game starts, players agree on the starting number of cards per player.",
         "Cards per player decrease by 1 each round, down to 1 card in the final round.",
         "The dealer rotates to the next player after every round.",

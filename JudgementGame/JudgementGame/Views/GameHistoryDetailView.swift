@@ -66,6 +66,16 @@ public struct GameHistoryDetailView: View {
                         }
                         
                         HStack {
+                            Text("Number of decks")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(AppTheme.textDim)
+                            Spacer()
+                            Text("\(currentGame.numberOfDecks) (\(currentGame.totalCards) cards)")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(AppTheme.text)
+                        }
+                        
+                        HStack {
                             Text("Winner")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(AppTheme.textDim)

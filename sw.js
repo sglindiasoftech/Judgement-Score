@@ -1,6 +1,6 @@
 // Judgement Scorer service worker
 // Bump CACHE_VERSION on every deploy that changes any cached file.
-var CACHE_VERSION = 'judgement-v5';
+var CACHE_VERSION = 'judgement-v6';
 var FILES_TO_CACHE = [
   './',
   './index.html',

@@ -6,6 +6,7 @@ public struct ScoreboardSheetView: View {
     
     @State private var showAbortConfirmAlert: Bool = false
     @State private var isManagePlayersPresented: Bool = false
+    @State private var roundToEdit: Round? = nil
     
     public var body: some View {
         VStack(spacing: 16) {
@@ -27,8 +28,54 @@ public struct ScoreboardSheetView: View {
             
             if let game = stateManager.activeGame {
                 ScrollView {
-                    ScoreboardTableView(game: game)
-                        .padding(.horizontal, 16)
+                    VStack(spacing: 16) {
+                        ScoreboardTableView(game: game)
+                        
+                        let completedRounds = game.rounds.filter { !$0.roundScores.isEmpty }
+                        if !completedRounds.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("EDIT COMPLETED ROUNDS")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(AppTheme.goldDim)
+                                
+                                ForEach(completedRounds, id: \.roundNumber) { round in
+                                    FeltCardView {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("Round \(round.roundNumber) — \(round.cardsPerPlayer) cards")
+                                                    .font(.system(size: 15, weight: .bold))
+                                                    .foregroundColor(AppTheme.gold)
+                                                Text("Tap Edit to adjust announced sets or win/lost outcomes")
+                                                    .font(.system(size: 11, weight: .medium))
+                                                    .foregroundColor(AppTheme.textDim)
+                                            }
+                                            Spacer()
+                                            Button(action: {
+                                                roundToEdit = round
+                                            }) {
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: "pencil")
+                                                        .font(.system(size: 12, weight: .bold))
+                                                    Text("Edit")
+                                                        .font(.system(size: 13, weight: .bold))
+                                                }
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 6)
+                                                .background(AppTheme.gold)
+                                                .foregroundColor(.white)
+                                                .cornerRadius(8)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .sheet(item: $roundToEdit) { round in
+                    EditRoundSheetView(game: game, round: round)
+                        .environmentObject(stateManager)
                 }
             } else {
                 Text("No active game")

@@ -97,18 +97,20 @@ public struct Game: Identifiable, Codable, Hashable {
     public var numPlayers: Int
     public var players: [Player]
     public var startingCards: Int
+    public var numberOfDecks: Int
     public var currentDealerIndex: Int
     public var status: GameStatus
     public var rounds: [Round]
     public var finalScores: [Int: Int]?
     public var winner: [String]?
     
-    public init(numPlayers: Int, players: [Player], startingCards: Int, dealerIndex: Int) {
+    public init(numPlayers: Int, players: [Player], startingCards: Int, dealerIndex: Int, numberOfDecks: Int = 2) {
         self.gameId = "g_\(Int(Date().timeIntervalSince1970 * 1000))"
         self.date = Date()
         self.numPlayers = numPlayers
         self.players = players
         self.startingCards = startingCards
+        self.numberOfDecks = numberOfDecks
         self.currentDealerIndex = dealerIndex
         self.status = .active
         self.rounds = []
@@ -116,9 +118,47 @@ public struct Game: Identifiable, Codable, Hashable {
         self.winner = nil
     }
     
-    public static func maxStartCards(for numPlayers: Int) -> Int {
-        guard numPlayers > 0 else { return 26 }
-        return 104 / numPlayers
+    public var totalCards: Int {
+        numberOfDecks * 52
+    }
+    
+    public static func maxStartCards(for numPlayers: Int, decks: Int = 2) -> Int {
+        guard numPlayers > 0 else { return (decks * 52) / 4 }
+        return (decks * 52) / numPlayers
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case gameId, date, numPlayers, players, startingCards, numberOfDecks, currentDealerIndex, status, rounds, finalScores, winner
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.gameId = try container.decode(String.self, forKey: .gameId)
+        self.date = try container.decode(Date.self, forKey: .date)
+        self.numPlayers = try container.decode(Int.self, forKey: .numPlayers)
+        self.players = try container.decode([Player].self, forKey: .players)
+        self.startingCards = try container.decode(Int.self, forKey: .startingCards)
+        self.numberOfDecks = try container.decodeIfPresent(Int.self, forKey: .numberOfDecks) ?? 2
+        self.currentDealerIndex = try container.decode(Int.self, forKey: .currentDealerIndex)
+        self.status = try container.decode(GameStatus.self, forKey: .status)
+        self.rounds = try container.decode([Round].self, forKey: .rounds)
+        self.finalScores = try container.decodeIfPresent([Int: Int].self, forKey: .finalScores)
+        self.winner = try container.decodeIfPresent([String].self, forKey: .winner)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(gameId, forKey: .gameId)
+        try container.encode(date, forKey: .date)
+        try container.encode(numPlayers, forKey: .numPlayers)
+        try container.encode(players, forKey: .players)
+        try container.encode(startingCards, forKey: .startingCards)
+        try container.encode(numberOfDecks, forKey: .numberOfDecks)
+        try container.encode(currentDealerIndex, forKey: .currentDealerIndex)
+        try container.encode(status, forKey: .status)
+        try container.encode(rounds, forKey: .rounds)
+        try container.encodeIfPresent(finalScores, forKey: .finalScores)
+        try container.encodeIfPresent(winner, forKey: .winner)
     }
     
     public var activePlayers: [Player] {

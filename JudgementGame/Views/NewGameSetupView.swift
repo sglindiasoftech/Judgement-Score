@@ -114,9 +114,64 @@ public struct NewGameSetupView: View {
                         }
                     }
                     
+                    // Number of Decks Card
+                    FeltCardView {
+                        HStack {
+                            Text("Number of Decks")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(AppTheme.textDim)
+                            Spacer()
+                            Text("(\(stateManager.totalCardsInGame) cards)")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(AppTheme.goldDim)
+                        }
+                        
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                activeFieldIndex = nil
+                                stateManager.updateDeckCount(delta: -1)
+                            }) {
+                                Image(systemName: "minus")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(stateManager.setupNumDecks > 1 ? AppTheme.gold : AppTheme.textDim.opacity(0.3))
+                                    .frame(width: 44, height: 44)
+                                    .background(AppTheme.feltLight)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(AppTheme.border, lineWidth: 1))
+                            }
+                            .disabled(stateManager.setupNumDecks <= 1)
+                            
+                            Text("\(stateManager.setupNumDecks)")
+                                .font(.system(size: 36, weight: .heavy))
+                                .foregroundColor(AppTheme.text)
+                                .frame(minWidth: 60)
+                            
+                            Button(action: {
+                                activeFieldIndex = nil
+                                stateManager.updateDeckCount(delta: 1)
+                            }) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(stateManager.setupNumDecks < 4 ? AppTheme.gold : AppTheme.textDim.opacity(0.3))
+                                    .frame(width: 44, height: 44)
+                                    .background(AppTheme.feltLight)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(AppTheme.border, lineWidth: 1))
+                            }
+                            .disabled(stateManager.setupNumDecks >= 4)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                        
+                        Text(stateManager.setupNumDecks == 1 ? "1 standard deck = 52 cards" : "\(stateManager.setupNumDecks) standard decks = \(stateManager.totalCardsInGame) cards")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppTheme.textDim)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    
                     // Starting Cards Card
                     FeltCardView {
-                        let maxCards = Game.maxStartCards(for: stateManager.setupNumPlayers)
+                        let maxCards = Game.maxStartCards(for: stateManager.setupNumPlayers, decks: stateManager.setupNumDecks)
                         
                         HStack {
                             Text("Starting Cards")
@@ -135,12 +190,13 @@ public struct NewGameSetupView: View {
                             }) {
                                 Image(systemName: "minus")
                                     .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(AppTheme.gold)
+                                    .foregroundColor(stateManager.setupStartCards > 1 ? AppTheme.gold : AppTheme.textDim.opacity(0.3))
                                     .frame(width: 44, height: 44)
                                     .background(AppTheme.feltLight)
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(AppTheme.border, lineWidth: 1))
                             }
+                            .disabled(stateManager.setupStartCards <= 1)
                             
                             Text("\(stateManager.setupStartCards)")
                                 .font(.system(size: 36, weight: .heavy))
@@ -153,17 +209,18 @@ public struct NewGameSetupView: View {
                             }) {
                                 Image(systemName: "plus")
                                     .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(AppTheme.gold)
+                                    .foregroundColor(stateManager.setupStartCards < maxCards ? AppTheme.gold : AppTheme.textDim.opacity(0.3))
                                     .frame(width: 44, height: 44)
                                     .background(AppTheme.feltLight)
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(AppTheme.border, lineWidth: 1))
                             }
+                            .disabled(stateManager.setupStartCards >= maxCards)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 4)
                         
-                        Text("\(stateManager.setupNumPlayers) players × \(stateManager.setupStartCards) cards = \(stateManager.setupNumPlayers * stateManager.setupStartCards) of 104 cards")
+                        Text("\(stateManager.setupNumPlayers) players × \(stateManager.setupStartCards) cards = \(stateManager.setupNumPlayers * stateManager.setupStartCards) of \(stateManager.totalCardsInGame) cards")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(AppTheme.textDim)
                             .frame(maxWidth: .infinity, alignment: .center)
